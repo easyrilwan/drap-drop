@@ -62,10 +62,6 @@ class ProjectState extends State<Project> {
       ProjectStatus.Active
     );
     this.projects.push(newProject);
-    for (const listenerFn of this.listeners) {
-      listenerFn(this.projects.slice());
-    }
-    this.projects.push(newProject);
     this.updateListeners();
   }
 
@@ -98,11 +94,9 @@ interface Validatable {
 
 function validate(validatableInput: Validatable) {
   let isValid = true;
-
   if (validatableInput.required) {
     isValid = isValid && validatableInput.value.toString().trim().length !== 0;
   }
-
   if (
     validatableInput.minLength != null &&
     typeof validatableInput.value === "string"
@@ -110,7 +104,6 @@ function validate(validatableInput: Validatable) {
     isValid =
       isValid && validatableInput.value.length >= validatableInput.minLength;
   }
-
   if (
     validatableInput.maxLength != null &&
     typeof validatableInput.value === "string"
@@ -118,28 +111,24 @@ function validate(validatableInput: Validatable) {
     isValid =
       isValid && validatableInput.value.length <= validatableInput.maxLength;
   }
-
   if (
     validatableInput.min != null &&
     typeof validatableInput.value === "number"
   ) {
     isValid = isValid && validatableInput.value >= validatableInput.min;
   }
-
   if (
     validatableInput.max != null &&
     typeof validatableInput.value === "number"
   ) {
     isValid = isValid && validatableInput.value <= validatableInput.max;
   }
-
   return isValid;
 }
 
 // autobind decorator
-function autobind(_: any, _2: string, descriptor: PropertyDecorator) {
+function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
   const originalMethod = descriptor.value;
-
   const adjDescriptor: PropertyDescriptor = {
     configurable: true,
     get() {
@@ -147,7 +136,6 @@ function autobind(_: any, _2: string, descriptor: PropertyDecorator) {
       return boundFn;
     },
   };
-
   return adjDescriptor;
 }
 
@@ -226,7 +214,7 @@ class ProjectItem
 
   configure() {
     this.element.addEventListener("dragstart", this.dragStartHandler);
-    this.element.addEventListener("dragstart", this.dragEndHandler);
+    this.element.addEventListener("dragend", this.dragEndHandler);
   }
 
   renderContent() {
@@ -245,7 +233,6 @@ class ProjectList
 
   constructor(private type: "active" | "finished") {
     super("project-list", "app", false, `${type}-projects`);
-
     this.assignedProjects = [];
 
     this.configure();
@@ -278,8 +265,8 @@ class ProjectList
 
   configure() {
     this.element.addEventListener("dragover", this.dragOverHandler);
-    this.element.addEventListener("dragover", this.dragLeaveHandler);
-    this.element.addEventListener("dragover", this.dropHandler);
+    this.element.addEventListener("dragleave", this.dragLeaveHandler);
+    this.element.addEventListener("drop", this.dropHandler);
 
     projectState.addListener((projects: Project[]) => {
       const relevantProjects = projects.filter((prj) => {
@@ -328,7 +315,6 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
     this.peopleInputElement = this.element.querySelector(
       "#people"
     ) as HTMLInputElement;
-
     this.configure();
   }
 
@@ -347,13 +333,11 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
       value: enteredTitle,
       required: true,
     };
-
     const descriptionValidatable: Validatable = {
       value: enteredDescription,
       required: true,
       minLength: 5,
     };
-
     const peopleValidatable: Validatable = {
       value: +enteredPeople,
       required: true,

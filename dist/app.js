@@ -43,10 +43,6 @@ class ProjectState extends State {
     addProject(title, description, numOfPeople) {
         const newProject = new Project(Math.random().toString(), title, description, numOfPeople, ProjectStatus.Active);
         this.projects.push(newProject);
-        for (const listenerFn of this.listeners) {
-            listenerFn(this.projects.slice());
-        }
-        this.projects.push(newProject);
         this.updateListeners();
     }
     moveProject(projectId, newStatus) {
@@ -141,7 +137,7 @@ class ProjectItem extends Component {
     }
     configure() {
         this.element.addEventListener("dragstart", this.dragStartHandler);
-        this.element.addEventListener("dragstart", this.dragEndHandler);
+        this.element.addEventListener("dragend", this.dragEndHandler);
     }
     renderContent() {
         this.element.querySelector("h2").textContent = this.project.title;
@@ -178,8 +174,8 @@ class ProjectList extends Component {
     }
     configure() {
         this.element.addEventListener("dragover", this.dragOverHandler);
-        this.element.addEventListener("dragover", this.dragLeaveHandler);
-        this.element.addEventListener("dragover", this.dropHandler);
+        this.element.addEventListener("dragleave", this.dragLeaveHandler);
+        this.element.addEventListener("drop", this.dropHandler);
         projectState.addListener((projects) => {
             const relevantProjects = projects.filter((prj) => {
                 if (this.type === "active") {
